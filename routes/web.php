@@ -14,10 +14,10 @@ use App\Http\Controllers\UserController;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-Route::get('/users',[UserController::class,'index'])->name('users');;
-Route::get('users/create',[UserController::class,'create']);
-Route::post('users/store',[UserController::class,'store']);
+Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/users',[UserController::class,'GetAll'])->name('users');
+Route::get('users/create',[UserController::class,'Create'])->name('users.create');
+Route::post('users/store',[UserController::class,'Store']);
 
