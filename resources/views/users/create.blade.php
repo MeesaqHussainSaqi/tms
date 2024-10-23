@@ -4,6 +4,7 @@
 @section('title', 'Home Page')
 
 @section('content')
+{{$errors}}
 <form method="post" action="/users/store">
     @csrf
     <div class="mb-3">
