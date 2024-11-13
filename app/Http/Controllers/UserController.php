@@ -21,13 +21,68 @@ class UserController extends Controller
     public function index()
     {
         // $users = User::all();
-        // return view('users.all',compact('users'));
+        return view('users.all');
     }
     public function GetAll(Request $request)
     {
-        $users = $this->user->GetAll($request);
-        return $users;
+        $draw = $request->input('draw', 1);
+        // $start = $request->input('start');
+        // $length = $request->input('length');
+        // $searchValue = $request->input('search.value');
+
+        $response = $this->user->GetAll($request);
+        //   $response = [
+        //     'draw' => $draw,
+        //     'recordsTotal' => 5, // Total records count
+        //     'recordsFiltered' => 3, // Filtered records count
+        //     'data' => [
+        //         ["Airi", "Satou", "Accountant", "Tokyo", "28th Nov 08", "$162,700"],
+        //         [
+        //             "Angelica",
+        //             "Ramos",
+        //             "Chief Executive Officer (CEO)",
+        //             "London",
+        //             "9th Oct 09",
+        //             "$1,200,000"
+        //           ],
+        //           [
+        //             "Ashton",
+        //             "Cox",
+        //             "Junior Technical Author",
+        //             "San Francisco",
+        //             "12th Jan 09",
+        //             "$86,000"
+        //           ],
+        //           [
+        //             "Ashton",
+        //             "Cox",
+        //             "Junior Technical Author",
+        //             "San Francisco",
+        //             "12th Jan 09",
+        //             "$86,000"
+        //           ],
+        //           [
+        //             "Ashton",
+        //             "Cox",
+        //             "Junior Technical Author",
+        //             "San Francisco",
+        //             "12th Jan 09",
+        //             "$86,000"
+        //           ],
+                  
+        //     ]
+        // ];
+        $response = [
+            'draw' => $draw,
+            'recordsTotal' => $response['total'],     // Total number of records
+            'recordsFiltered' => $response['total'],
+            'data' =>array_map('array_values', $response['data']), 
+        ];
+        Log::info("response");
+        Log::info($response);
+        return response()->json($response);
     }
+    
 
     /**
      * Show the form for creating a new resource.

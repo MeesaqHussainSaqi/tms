@@ -37,121 +37,97 @@ abstract class BaseEloquent
 
     public function GetAll(Request $request)
     {
-        
-        $this->query = $this->query->get();
-        $code = Constant::HTTP_OK;
-        $data_result = new BaseRepositoryResponse();
-        $data_result->setValues($this->capitalizeArrayValues($this->query->toArray()));
-        // $data_result->setPermissions($this->permissions);
-        // $data_result->setParameters();
-        dd($data_result);
-        $response = Utilities::BuildSuccessResponse(Constant::Success, $code, $this->Message("List."), $data_result);
-        return response()->json($response, $code);
-        
+
+        $start = $request->input('start');
+        $length = $request->input('length');
+        $searchValue = $request->input('search.value');
+
+        // Start with a base query
+        $this->query = $this->query;
+
+
+
+        // Apply filters if any
+        $filters = $request->query('filters', ['name','email']);
+        if (!empty($filters)) {
+            foreach ($filters as $key => $value) {
+                $this->query->where($key, 'like', "%$value%");
+            }
+        }
+
+        // Sorting
+        $this->orderBy = $request->query('orderBy', 'id'); // Default order by 'id'
+        $this->orderType = $request->query('orderType', 'asc'); // Default order type 'asc'
+        $this->query->orderBy($this->orderBy, $this->orderType);
+
+        // Pagination
+        $this->pageSize = (int)$request->query('pageSize', 5); // Default page size 10
+        $this->pageIndex = (int)$request->query('pageIndex', 1); // Default page index 1
+
+        // Calculate offset
+        $offset = ($this->pageIndex - 1) * $this->pageSize;
+
+        // Fetch paginated results
+        $result = $this->query->skip($offset)->take($this->pageSize)->get()->toArray();
+        Log::info("request");
+        Log::info($request);
+
+        // Get the total count for pagination
+        $total = $this->query->count();
+
+        // Prepare paginated response
+        return [
+            'data' => $result,
+            'total' => $total,
+            'pageIndex' => $this->pageIndex,
+            'pageSize' => $this->pageSize
+        ];
     }
 
-    public function GetById($id)
-    {
-
-    }
-
+    public function GetById($id) {}
     public function Store(Request $request)
     {
-        Log::info("in base eloquent store");
         try {
             $validator = Validator::make(
                 $request->all(),
                 $this->model->Rules($request),
-                // $this->model->Messages($request)
             );
-            
+
             if ($validator->fails()) {
-                $errors = $validator->errors()->all();
-                $code = Constant::HTTP_VALIDATION_FAILED; // 422
-                $response = Utilities::BuildBadResponse(
-                    Constant::Error,
-                    $code,
-                    "Validation failed.",
-                    $errors
-                );
-                // $previousRoute = app('router')->getRoutes()->match($request->create(url()->previous()))->getName();
-                Log::info("asdasda");
-
-                Log::info(var_dump($response));
                 return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput();
-                // return redirect()->back()->withErrors($validator);
-                
+                    ->withErrors($validator)
+                    ->withInput();
             }
-        $this->model->create($request->all());
-
-            return response()->json();
+            $this->model->create($request->all());
+            return redirect()->route('users');
         } catch (Exception $e) {
             return 'error';
         }
     }
 
-    public function Update(Request $request)
-    {
-       
-    }
+    public function Update(Request $request) {}
 
-    public function Delete(Request $request, $id)
-    {
+    public function Delete(Request $request, $id) {}
 
-    }
+    public function PatchDisableEnable(Request $request) {}
 
-    public function PatchDisableEnable(Request $request)
-    {
-       
-    }
+    public function getRecordType($value) {}
 
-    public function getRecordType($value)
-    {
+    public function Message($message) {}
 
-    }
+    public function FindByColumn($column, $value) {}
 
-    public function Message($message)
-    {
-    }
+    protected function SetPaginationDetails(Request $request) {}
 
-    public function FindByColumn($column, $value)
-    {
-    }
+    protected function ValidateRequest(Request $request) {}
 
-    protected function SetPaginationDetails(Request $request)
-    {
-    
-    }
+    public function capitalizeArrayValues($array) {}
 
-    protected function ValidateRequest(Request $request)
-    {
-       
-    }
+    protected function setDateToFromInWhereClause(Request $request) {}
 
-    public function capitalizeArrayValues($array)
-    {
-        
-    }
+    protected function setMonthYearInWhereClause(Request $request) {}
 
-    protected function setDateToFromInWhereClause(Request $request)
-    {
-       
-    }
+    public function GetAllRelatedUsers(Request $request) {}
 
-    protected function setMonthYearInWhereClause(Request $request)
-    {
-
-    }
-
-    public function GetAllRelatedUsers(Request $request)
-    {
-       
-    }
-
-    public function GetAssignedLeads(Request $request)
-    {
-
-    }
+    public function GetAssignedLeads(Request $request) {}
 }
